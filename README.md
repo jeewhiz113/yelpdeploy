@@ -8,6 +8,7 @@ The react application hits the routes defined in the server.js file.  It allows 
 The server for the application is hosted locally on port 4000 and the react app is hosted on 3000.  
 
 The database is a postgres database and to connect to the postgres database, follow this link here: https://node-postgres.com/features/connecting
+  -In the .env file, we need to define: PGHOST (localhost), PGUSER (postgres), the default user, PGDATABASE (the database name), PGPASSWORD (password set initially during installation), PGPORT (5432, setup initially).
 
 ---------------
 
