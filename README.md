@@ -33,11 +33,36 @@ Now we talk about deployment on AWS:
 
 
 ---------------
-Now we are onto AWS:
+Now we are onto AWS: (reference here: https://github.com/Sanjeev-Thiyagarajan/PERN-STACK-DEPLOYMENT)
 
 -Search for EC2, and we set up key pair to SSH/Connect to the EC2 instance.  So on the left window pane, click Key Pairs, create a key pair and store the pem file on our local machine.
 
 -Click on instances and click launch instances and search for Ubuntu, deploy on Ubuntu 20.04, select t2.micro then configure instance details, then 
  Add Tags of 'Name : YelpApp' then launch, then choose an existing key pair previously created.  YelpApp in this case.  Lastly Launch instance.
 
+-Go back to instances and wait till it says running(deployed).  Open up terminal.  Point it at the directory for which the .pem file is stored, make it so that it is only readable by the owner: chmod 400 xxxxx.pem 
 
+-Next run ssh -i 'drag the pem file here' ubuntu@0.0.0.0, replace the 0.0.0.0 by the ip address of the ec2 instance.  If successful, we should see the terminal now pointing at ubuntu@ip-0-0-0-0:
+
+-Next we update all packages: sudo apt update && sudo apt upgrade -y
+
+-Next we install postgres: sudo apt install postgresql postgresql-contrib -y
+
+-Next, if we try to run psql, it will say the user ubuntu does not exist.  Note that Postgres during installation created a user called 'postgres' and we need to connect to postgres by using this user, so we switch to the postgres user and run psql:
+
+-sudo -i -u postgres
+-psql
+
+-Now we can create an ubuntu user in the postgres database: \q to quit out of the postgres user then createuser --interactive
+-specify the name of the user: 'ubuntu'
+
+-We check to make sure ubuntu as a user is created by: -psql and then \du
+
+------
+Login in using the newly created ubuntu user: \q => exit => whoami => psql -d postgres (-d flag allows us to specify the database to connect to, which in this case is postgres)
+
+So after the above, we are logged in to postgres database as the user ubuntu! (\conninfo to reveal connection info)
+
+-to create a password for the ubuntu user: ALTER user ubuntu PASSWORD 'root123';
+
+-the set up is finished, now we create the schema for the db!
