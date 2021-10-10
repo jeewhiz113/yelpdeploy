@@ -66,3 +66,27 @@ So after the above, we are logged in to postgres database as the user ubuntu! (\
 -to create a password for the ubuntu user: ALTER user ubuntu PASSWORD 'root123';
 
 -the set up is finished, now we create the schema for the db!
+
+-------
+We now try to migrate/create the DBs to postgres.  We can use the tool pg_dump to dump the db and import it to another postgres db.
+
+-open a terminal pointing at a folder for which to store the data dump.  Type in: pg_dump -U postgres -f yelp.pgsql -C yelp (log in to postgres user, -f specifies a file we wish to dump the data to, which is yelp.psql, -C specifies that we want the create database commands in the dump and lastly, yelp specifies he database we wish to retrieve the data from. 
+
+-Now we should have a file in the folder and we need to take that file and copy it over to the Ubuntu server. Copy the yelp.pgsql file to the production server:
+-scp -i [path to pem file] [path to yelp.pgsql] username@[server-ip]:[directory to copy file to] and as an example: scp -i yelp.pem yelp.pgsql ubuntu@1.1.1.1:/home/ubuntu/
+
+-Check that the file got copied successfully, in the ssh: cd ~ => cd /home/ubuntu => ls and we should see a yelp.pgsql
+
+-Now we create the db using the file: we first make a db in the postgres server: psql -d postgres => create database yelp;
+-Then quit out of the db => \q then to insert what we have in yelp.pgsql to the yelp Database => psql yelp < /home/ubuntu/yelp.pgsql
+
+------- 
+to check: psql -d yelp => \d => select * from restaurants;  Also note the default port for postsql is 5432.
+
+-------
+Next step is to copy our application code into our production server! (first quit out of the server)
+-make a new directory on the ubuntu server: mkdir apps => cd apps => mkdir yelp-app => cd yelp-app, then copy code from our repo to our ubuntu server:
+git clone [link] .  (do not forget about the space and the dot!)
+
+-We now need to install node on our Ubuntu server.
+
