@@ -157,4 +157,66 @@ Now we configure our file telling nginx what to do.
 - then for the changes to take effect, we restart nginx: sudo systemctl restart nginx
 - Now to check, we put the ip address on chrome and that should take the user directly to the index.html generated in the build folder!
 
+--------------
+Now we set up nginx for the backend:
+-Reminder of what we want to do, if we get the root url, we want nginx to forward to react.  If we get requests that goes to /api, then we wish to forward to our express server.
+
+So we copy and paste (usually a google search to get this):
+         location /api {
+            proxy_pass http://localhost:4000;
+            proxy_http_version 1.1;
+            proxy_set_header Upgrade $http_upgrade;
+            proxy_set_header Connection 'upgrade';
+            proxy_set_header Host $host;
+            proxy_cache_bypass $http_upgrade;
+        }
+and insert it to our jee.digital server block.  This tells nginx that we will route /api to the localhost:3001 address.
+
+-Also something that is singular to react, since it is a single page application, if we get a request that goes to /restaurants/2 to display the details of a restaurant, we need to have react handle that routing for us.  They are routes that actually changes the URL and react knows what page to load and where to go to retrieve the information for that page.  So the following code block specifies, all other requests, go try react.
+        location / {
+                try_files $uri /index.html;
+        }
+Now when we try a route like /restaurants/2, then we do not get a 404 error.  Nothing shows up on screen because the database isn't hooked up.
+
+------------
+Next we set up the environment variables for our server, to set up individual environment variables:
+- export TEST="hello"
+- To print out our environment variables => printenv or printenv | grep -i test (to find a specific one).
+- to remove an environment variable, unset [name]
+- to import environment variables from a file:
+- step 1: go to home directory and create a file called it .env. (does not matter the directory, preferably not in our application code)
+- vi .env
+- step 2: copy and paste the .env file content on to the ubuntu server. (note to add export at the start of each variable and the values should be in quotations)
+- go back to the directory and use => source .env => printenv | grep -i pg (to test)
+- step 3: Now inserting export at the start of each environment variable and putting quotations around its value can     become too tedious a task when there are many to be loaded.  One way around this is to copy and paste the content 
+  from the local env and use the following command (make sure we are pointing at the directory where the .env file is   located):=> set -o allexport; source .env; set +o allexport (we can then check they are loaded: printenv | grep -i     pg)
+
+-----------
+
+-One big issue, the environment variables do not persist through reload!  One can test it by just rebooting the server: sudo reboot => log back in to ubuntu and do a (printenv | grep pg) and we will see that the environment variables are all gone.
+
+-The trick here is save the env variables to the .profile or the .bashrc, we will use the .profile
+-=>ls -la (print out all hidden files and we should see a .profile and a .bashrc file.
+-=>vi .profile then go to the bottom of the file and paste in the following command: 
+-=> set -o allexport; source /home/ubuntu/.env; set +o allexport
+-To test, quit out of the shell and reconnect and do a printenv
+
+-----------
+
+Now we set up the firewall for Ubuntu
+- sudo ufw satus
+- sudo ufw allow ssh
+- sudo ufw allow http
+- sudo ufw allow https
+- sudo ufw enable
+- sudo ufw status
+
+-----------
+Next we set up ssl or HTTPS:
+
+Step by Step procedure is linked here:https://certbot.eff.org/lets-encrypt/ubuntufocal-nginx.html
+Follow the instruction and you will see the locked icon on chrome and the site is secured!
+
+
+
 
