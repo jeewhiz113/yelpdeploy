@@ -217,6 +217,8 @@ Next we set up ssl or HTTPS:
 Step by Step procedure is linked here:https://certbot.eff.org/lets-encrypt/ubuntufocal-nginx.html
 Follow the instruction and you will see the locked icon on chrome and the site is secured!
 
+----------
+Debug our database, currently the app is not working!
 
 
 
