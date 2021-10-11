@@ -89,4 +89,72 @@ Next step is to copy our application code into our production server! (first qui
 git clone [link] .  (do not forget about the space and the dot!)
 
 -We now need to install node on our Ubuntu server.
+Here is the link with the terminal commands, make sure this is done in the ssh connected to Ubuntu:
+https://github.com/nodesource/distributions/blob/master/README.md
+
+first command: curl -fsSL https://deb.nodesource.com/setup_16.x | sudo -E bash -
+second command: sudo apt-get install -y nodejs
+
+-------
+-Now install the node modules in the server and client folders: run npm i on both folders.
+
+-Next we use a process manager, and what this does is that if our app crashes, it will restart for us and also if there was a power outage on the aws server, it will automatically restart our node app on reboot.  So we install by: sudo npm install pm2 -g
+
+-Next we start our node app using pm2: cd ~ => pm2 start apps/yelp-app/server/server.js
+Note to stop a process, we do: pm2 stop 0, 0 corresponds to the id.  Also note we can spin up as many servers as we want by using the previous command.
+To delete a process, we do pm2 delete 0.
+
+To give our backend a proper name in the pm2 manager, we pass it a name flag: --name yelp-app
+
+Lastly, we configure pm2 to automatically restart the application if the aws server reboots: => pm2 startup
+Then with the returned sudo command, copy and paste it and hit enter (sudo env PATH=$PATH:/usr/bin /usr/lib/node_modules/pm2/bin/pm2 startup systemd -u ubuntu --hp /home/ubuntu)
+
+Then pm2 startup is configured, to run when server reboots, once all the apps are enabled we run the command: pm2 save
+And that saves all the apps currently running and will automatically power on all the processes when Ubuntu is powered back up
+
+To test: sudo reboot => wait a little while and connect back to the ec2 server: ssh -i [.pem file location] ubuntu@1.1.1.1. => pm2 status and we should see the app is back online!
+
+-------------
+Now we move on to the front end:
+- point the ssh to the client folder and run npm i to install all dependencies.
+- Next we wish to do npm run build, then cd into the build folder and we should see an index.html page.  We will configure out EGINX to point to this index.html to serve up the front end to the client.
+
+- Next we install nginx: sudo apt install nginx -y
+- We configure nginx to be powered on whenever the system reboots: sudo systemctl enable nginx
+- To verify: systemctl status nginx and check running active and .service is enabled.  (When the machine powers on, it brings nginx online as well).
+
+-------------
+Now configure nginx:
+-Go back to root level: cd ~ => cd /etc/nginx/ => cd sites-available/ => ls
+
+-We should see a default folder.  It is a server block and it processes the http/https requests.  To see this work, go to aws console, select the instance and under security groups, select launch-sizard-1(or 2 or 3), then hit edit inbound rules.  Add rule: allow http and allow https from any address (i.e. 0.0.0.0) and save.
+
+-We then navigate to the public IP of this instance and should see: Welcome to nginx! and etc.... so this is being handled by the default server block in sites-available!
+
+-We investigate the server block by typing the command: cat default.
+
+A few words on the default server block:
+  - server listens on port 80. (ipv4) 
+  - on ipv6 (the most recent internet protocol), it listens on port 80 as well (listen[::])
+  - Now the default_server option says if the server gets a request and it does not match any of the server block, then it will default to the one with the   
+    default_server flag.
+  - root /var/www/html tells the server what to return to the client initially, to investigate => cd /var/www/html/ => cat index.nginx-debian.html (One can see 
+    the actual homepage code for nginx.
+  - Then there is a list of files that nginx will look for to serve: index, index.html, index.htm and etc.  All we need is index.html so we are ok there!
+  - Then the server_name_; this here just specifies the domain name of the application.  If we have a domain name, this is where we would put it.  The underscore 
+    tell nginx that all requests reaches this server will be handled by this default block.
+  - location /{} says if some route is not found, then we serve the 404 error.
+ 
+--------------
+Now we configure our file telling nginx what to do.
+
+- We may as well copy default over to jee.digital (my cheap domain set up to test the deployment) => sudo cp default jee.digital
+- We use a text editor: sudo vi jee.digital
+- specify the root to point to the build folder: /home/ubuntu/apps/yelp-app/client/build;
+- pass in jee.digital and www.jee.digital to the server_name specification, or we just put in the actual ip address of the machine.
+- save the file by pressing esc and :wq then enter
+- lastly, we wish to deploy those configuraions: sudo ln -s /etc/nginx/sites-available/jee.digital /etc/nginx/sites-enabled/
+- then for the changes to take effect, we restart nginx: sudo systemctl restart nginx
+- Now to check, we put the ip address on chrome and that should take the user directly to the index.html generated in the build folder!
+
 
