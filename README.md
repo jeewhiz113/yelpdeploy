@@ -1,6 +1,8 @@
 # yelpdeploy
 
 -------
+The general reference to this file is here: https://github.com/Sanjeev-Thiyagarajan/PERN-STACK-DEPLOYMENT
+-------
 This file is divided into two parts: The client, which is a react application and the server, which is an express/node server.
 
 The react application hits the routes defined in the server.js file.  It allows users to add and delete a restaurant, and also add reviews for a specific restaurant.
